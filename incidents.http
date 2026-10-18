@@ -1,0 +1,21 @@
+POST http://localhost:8080/incidents
+Content-Type: application/json
+
+   {
+     "shortDescription": "Payments failing at checkout",
+     "description": "Users get an error when paying by card since 10:40",
+     "errorCode": "HTTP 503",
+     "suspectedCi": "payments-db-prod-01",
+     "affectedCis": ["payments-api-prod", "checkout-web"],
+     "createdBy": "shadow@example.com"
+   }
+
+###
+POST http://localhost:8080/incidents
+Content-Type: application/json
+
+{
+  "shortDescription": "",
+  "affectedCis": [],
+  "createdBy": "not-an-email"
+}
