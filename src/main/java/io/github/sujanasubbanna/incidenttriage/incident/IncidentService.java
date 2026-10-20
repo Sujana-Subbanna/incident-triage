@@ -3,10 +3,13 @@ package io.github.sujanasubbanna.incidenttriage.incident;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+
+import static io.github.sujanasubbanna.incidenttriage.common.KafkaConstants.INCIDENT_CREATED_TOPIC;
 
 @Service
 public class IncidentService {
@@ -14,10 +17,12 @@ public class IncidentService {
 
     private static final Logger log = LoggerFactory.getLogger(IncidentService.class);
     private final IncidentRepository incidentRepository;
+    private final KafkaTemplate<String, IncidentCreatedEvent> kafkaIncidentCreatedTemplate;
 
     @Autowired
-    IncidentService(IncidentRepository incidentRepository){
+    IncidentService(IncidentRepository incidentRepository, KafkaTemplate<String, IncidentCreatedEvent> kafkaIncidentCreatedTemplate){
         this.incidentRepository = incidentRepository;
+        this.kafkaIncidentCreatedTemplate = kafkaIncidentCreatedTemplate;
     }
 
     private String generateNumber(){
@@ -33,6 +38,8 @@ public class IncidentService {
 
         incidentRepository.save(incident);
         log.debug("Successfully saved the incident number {} ", incident.getNumber());
+        IncidentCreatedEvent createdEvent = new IncidentCreatedEvent(incident.getNumber(), incident.getCreatedAt());
+        kafkaIncidentCreatedTemplate.send(INCIDENT_CREATED_TOPIC, incident.getNumber(), createdEvent);
 
         return IncidentResponse.from(incident);
 
